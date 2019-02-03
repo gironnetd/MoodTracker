@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 /**
@@ -45,6 +46,7 @@ public class MoodActivity extends AppCompatActivity  {
     private SharedPreferences mSharedPreferences;
 
     private final String POSITION = "POSITION";
+    private final String COMMENT = "COMMENT";
     private final String PREFERENCE_NAME = "shared_preferences";
 
     @Override
@@ -107,5 +109,37 @@ public class MoodActivity extends AppCompatActivity  {
         clRootView.setBackgroundColor(colors[currentPosition]);
         ivMood.setBackground(smileys.getDrawable(currentPosition));
     }
+
+    /**
+     * open the alert dialog to write comment for the day from comment button
+     * @param view
+     */
+    public void writeComment(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        View inflatedView = inflater.inflate(R.layout.dialog_comment, null);
+        final EditText editText = inflatedView.findViewById(R.id.edit_text_comment);
+
+        editText.append(mSharedPreferences.getString(COMMENT, ""));
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        builder.setView(inflatedView)
+                // Add action buttons
+                .setPositiveButton("Valider", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        if(editText.getText().length() != 0)
+                            mSharedPreferences.edit().putString(COMMENT, editText.getText().toString()).apply();
+                    }
+                })
+                .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        builder.create().show();
+    }
+
 }
 
