@@ -15,6 +15,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.ocr.moodtracker.receiver.AlarmBroadcastReceiver;
+
+import static com.ocr.moodtracker.utils.Constants.*;
+
 /**
  * Manage the mood of the day
  */
@@ -25,33 +29,17 @@ public class MoodActivity extends AppCompatActivity  {
     private ConstraintLayout clRootView;
     private ImageView ivMood;
 
-//    int[] colors = new int[] {
-//            R.color.faded_red,
-//            R.color.warm_grey,
-//            R.color.cornflower_blue_65,
-//            R.color.light_sage,
-//            R.color.banana_yellow};
-//    int[] smileys = new int[] {
-//            R.drawable.smiley_sad,
-//            R.drawable.smiley_disappointed,
-//            R.drawable.smiley_normal,
-//            R.drawable.smiley_happy,
-//            R.drawable.smiley_super_happy};
-
     int colors[];
     TypedArray smileys;
 
-    private int currentPosition = 3;
+    private int currentPosition = DEFAULT_MOOD;
 
     private SharedPreferences mSharedPreferences;
 
-    private final String POSITION = "POSITION";
-    private final String COMMENT = "COMMENT";
-    private final String PREFERENCE_NAME = "shared_preferences";
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(POSITION, currentPosition);
+        outState.putInt(MOOD_STATUS, currentPosition);
         super.onSaveInstanceState(outState);
     }
 
@@ -65,13 +53,18 @@ public class MoodActivity extends AppCompatActivity  {
         mSharedPreferences = getSharedPreferences(PREFERENCE_NAME, MODE_PRIVATE);
 
         if(savedInstanceState != null) {
-            currentPosition = savedInstanceState.getInt(POSITION);
+            currentPosition = savedInstanceState.getInt(MOOD_STATUS);
         } else {
-            currentPosition = mSharedPreferences.getInt(POSITION, currentPosition);
+            currentPosition = mSharedPreferences.getInt(MOOD_STATUS, currentPosition);
         }
         colors = getResources().getIntArray(R.array.colors);
         smileys = getResources().obtainTypedArray(R.array.smileys);
         changeMood(currentPosition);
+
+        if(!AlarmBroadcastReceiver.isAlarmStarted) {
+            AlarmBroadcastReceiver.scheduleAlarm(getBaseContext());
+            AlarmBroadcastReceiver.isAlarmStarted = true;
+        }
     }
 
     /**
@@ -90,14 +83,14 @@ public class MoodActivity extends AppCompatActivity  {
                     if(currentPosition > 0) {
                         currentPosition --;
                         changeMood(currentPosition);
-                        mSharedPreferences.edit().putInt(POSITION, currentPosition).apply();
+                        mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                     }
                 }
                 if (y1 > y2) {
                     if(currentPosition < colors.length - 1) {
                         currentPosition ++;
                         changeMood(currentPosition);
-                        mSharedPreferences.edit().putInt(POSITION, currentPosition).apply();
+                        mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                     }
                 }
                 break;
@@ -122,7 +115,7 @@ public class MoodActivity extends AppCompatActivity  {
         View inflatedView = inflater.inflate(R.layout.dialog_comment, null);
         final EditText editText = inflatedView.findViewById(R.id.edit_text_comment);
 
-        editText.append(mSharedPreferences.getString(COMMENT, ""));
+        editText.append(mSharedPreferences.getString(CURRENT_COMMENT, DEFAULT_COMMENT));
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
         builder.setView(inflatedView)
@@ -131,7 +124,7 @@ public class MoodActivity extends AppCompatActivity  {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         if(editText.getText().length() != 0)
-                            mSharedPreferences.edit().putString(COMMENT, editText.getText().toString()).apply();
+                            mSharedPreferences.edit().putString(CURRENT_COMMENT, editText.getText().toString()).apply();
                     }
                 })
                 .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
@@ -140,6 +133,5 @@ public class MoodActivity extends AppCompatActivity  {
                 });
         builder.create().show();
     }
-
 }
 
