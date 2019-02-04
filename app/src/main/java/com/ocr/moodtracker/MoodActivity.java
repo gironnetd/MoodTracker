@@ -133,5 +133,9 @@ public class MoodActivity extends AppCompatActivity  {
                 });
         builder.create().show();
     }
+
+    public void startHistory(View view) {
+        startActivity(new Intent(this, HistoryActivity.class));
+    }
 }
 
