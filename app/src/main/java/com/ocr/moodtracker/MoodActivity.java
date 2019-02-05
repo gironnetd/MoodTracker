@@ -1,5 +1,8 @@
 package com.ocr.moodtracker;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +17,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -98,16 +103,18 @@ public class MoodActivity extends AppCompatActivity  {
                 y2 = event.getY();
                 if (y1 < y2) {
                     if(currentPosition > 0) {
+                        animateBackgroundColor(currentPosition, currentPosition - 1);
                         currentPosition --;
-                        changeMood(currentPosition);
+                        animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                         playSoundMood(currentPosition);
                     }
                 }
                 if (y1 > y2) {
                     if(currentPosition < colors.length - 1) {
+                        animateBackgroundColor(currentPosition, currentPosition + 1);
                         currentPosition ++;
-                        changeMood(currentPosition);
+                        animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                         playSoundMood(currentPosition);
                     }
@@ -115,6 +122,39 @@ public class MoodActivity extends AppCompatActivity  {
                 break;
         }
         return false;
+    }
+
+    /**
+     * Animate the change of the smiley
+     */
+    public void animateSmiley(){
+        Animation animZoomOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_out);
+        animZoomOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) { }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                changeMood(currentPosition);
+                Animation animZoomIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_in);
+                ivMood.startAnimation(animZoomIn);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) { }
+        });
+        ivMood.startAnimation(animZoomOut);
+    }
+
+    /**
+     * Animate the background color from
+     * @param currentPosition current mood color
+     * @param toPosition new mood color
+     */
+    public void animateBackgroundColor(int currentPosition, int toPosition) {
+        ObjectAnimator animator = ObjectAnimator.ofInt(clRootView, "backgroundColor", colors[currentPosition], colors[toPosition]).setDuration(1000);
+        animator.setEvaluator(new ArgbEvaluator());
+        animator.start();
     }
 
     /**
