@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -38,10 +39,13 @@ public class MoodActivity extends AppCompatActivity  {
 
     int colors[];
     TypedArray smileys;
+    int[] soundMoods;
 
     private int currentPosition = DEFAULT_MOOD;
 
     private SharedPreferences mSharedPreferences;
+
+    private MediaPlayer player;
 
 
     @Override
@@ -69,6 +73,10 @@ public class MoodActivity extends AppCompatActivity  {
         smileys = getResources().obtainTypedArray(R.array.smileys);
         changeMood(currentPosition);
 
+        soundMoods = new int[] { R.raw.sad, R.raw.disappointed,
+                R.raw.normal, R.raw.happy, R.raw.very_happy};
+
+
         if(!AlarmBroadcastReceiver.isAlarmStarted) {
             AlarmBroadcastReceiver.scheduleAlarm(getBaseContext());
             AlarmBroadcastReceiver.isAlarmStarted = true;
@@ -93,6 +101,7 @@ public class MoodActivity extends AppCompatActivity  {
                         currentPosition --;
                         changeMood(currentPosition);
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
+                        playSoundMood(currentPosition);
                     }
                 }
                 if (y1 > y2) {
@@ -100,6 +109,7 @@ public class MoodActivity extends AppCompatActivity  {
                         currentPosition ++;
                         changeMood(currentPosition);
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
+                        playSoundMood(currentPosition);
                     }
                 }
                 break;
@@ -107,6 +117,10 @@ public class MoodActivity extends AppCompatActivity  {
         return false;
     }
 
+    /**
+     * display the mood
+     * @param currentPosition
+     */
     public void changeMood(int currentPosition) {
         if(clRootView != null) clRootView.setBackgroundColor(colors[currentPosition]);
         if(ivMood != null) ivMood.setBackground(smileys.getDrawable(currentPosition));
@@ -140,6 +154,19 @@ public class MoodActivity extends AppCompatActivity  {
                     }
                 });
         builder.create().show();
+    }
+
+    /**
+     * play the sound associate with mood
+     */
+    public void playSoundMood(int currentPosition) {
+        if(player != null) {
+            player.reset();
+            player.release();
+        }
+
+        player = MediaPlayer.create(getBaseContext(), soundMoods[currentPosition]);
+        player.start();
     }
 
     public void startHistory(View view) {
