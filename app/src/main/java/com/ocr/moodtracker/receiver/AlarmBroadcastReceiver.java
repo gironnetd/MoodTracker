@@ -7,10 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
-import android.support.v4.content.WakefulBroadcastReceiver;
-import android.util.Log;
 
+import com.ocr.moodtracker.HistoryActivity;
+import com.ocr.moodtracker.MoodActivity;
 import com.ocr.moodtracker.data.AppDatabase;
 import com.ocr.moodtracker.data.Mood;
 
@@ -43,7 +42,9 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
             List<Mood> moods = database.moodDao().findAllMoods();
 
             if (!moods.isEmpty()) {
-                for (Mood mood : moods) { mood.setSinceToday(mood.getSinceToday() + 1); }
+                for (Mood mood : moods) {
+                    mood.setDayFromToday(mood.getDayFromToday() + 1);
+                }
             }
 
             database.moodDao().updateMoods(moods);
@@ -61,13 +62,16 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
             preferences.edit().putInt(MOOD_STATUS, DEFAULT_MOOD).apply();
             preferences.edit().putString(CURRENT_COMMENT, DEFAULT_COMMENT).apply();
 
+            if (MoodActivity.getInstance() != null)
+                MoodActivity.getInstance().changeMood(preferences.getInt(MOOD_STATUS, DEFAULT_MOOD));
+            if (HistoryActivity.getInstance() != null) HistoryActivity.getInstance().displayMoods();
             scheduleAlarm(context);
         }
     }
 
     /* Schedule the alarm based on user preferences */
     public static void scheduleAlarm(Context context) {
-        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager manager = AlarmManagerProvider.getAlarmManager(context);
         Intent intent = new Intent(context, AlarmBroadcastReceiver.class);
         PendingIntent operation = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -84,13 +88,9 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
             startTime.set(Calendar.AM_PM, Calendar.PM);
         }
 
-        if (Calendar.getInstance().after(startTime)) {
-            startTime.add(Calendar.DATE, 1);
-        }
+        startTime.add(Calendar.DATE, 1);
 
-        if (SDK_INT < Build.VERSION_CODES.KITKAT) {
-            manager.set(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), operation);
-        } else if (Build.VERSION_CODES.KITKAT <= SDK_INT && SDK_INT < Build.VERSION_CODES.M) {
+        if (Build.VERSION_CODES.KITKAT <= SDK_INT && SDK_INT < Build.VERSION_CODES.M) {
             manager.setExact(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), operation);
         } else if (SDK_INT >= Build.VERSION_CODES.M) {
             manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), operation);

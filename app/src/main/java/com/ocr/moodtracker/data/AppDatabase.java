@@ -8,7 +8,7 @@ import android.content.Context;
 /**
  * The Room database for this app
  */
-@Database(entities = {Mood.class}, version = 1)
+@Database(entities = {Mood.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase mInstance;
@@ -22,7 +22,6 @@ public abstract class AppDatabase extends RoomDatabase {
         }
         return mInstance;
     }
-
     public static void destroyInstance() {
         mInstance = null;
     }
