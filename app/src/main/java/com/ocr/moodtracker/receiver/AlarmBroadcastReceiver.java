@@ -14,12 +14,8 @@ import android.util.Log;
 import com.ocr.moodtracker.data.AppDatabase;
 import com.ocr.moodtracker.data.Mood;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static com.ocr.moodtracker.utils.Constants.CURRENT_COMMENT;
