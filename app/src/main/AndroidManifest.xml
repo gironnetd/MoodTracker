@@ -19,6 +19,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".HistoryActivity"/>
+
         <receiver
             android:name=".receiver.AlarmBroadcastReceiver"
             android:enabled="true"

@@ -14,15 +14,14 @@ public class Mood {
     @PrimaryKey
     private final int uid;
 
-    @ColumnInfo(name = "since_today")
-    private int sinceToday = 0;
+    @ColumnInfo(name = "day_from_today")
+    private int dayFromToday = 1;
 
     @ColumnInfo(name = "mood_status")
     private int moodStatus;
 
     @ColumnInfo(name = "comment")
-    @Nullable
-    private String comment;
+    private String comment = "";
 
     public Mood(int uid) {
         this.uid = uid;
@@ -33,12 +32,12 @@ public class Mood {
     }
 
 
-    public int getSinceToday() {
-        return sinceToday;
+    public int getDayFromToday() {
+        return dayFromToday;
     }
 
-    public void setSinceToday(int sinceToday) {
-        this.sinceToday = sinceToday;
+    public void setDayFromToday(int sinceToday) {
+        this.dayFromToday = sinceToday;
     }
 
     public int getMoodStatus() {

@@ -1,5 +1,6 @@
 package com.ocr.moodtracker;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,6 +25,12 @@ import static com.ocr.moodtracker.utils.Constants.*;
  */
 public class MoodActivity extends AppCompatActivity  {
 
+    private static MoodActivity mInstance;
+
+    public static MoodActivity getInstance() {
+        return mInstance;
+    }
+
     private float y1, y2;
 
     private ConstraintLayout clRootView;
@@ -47,6 +54,7 @@ public class MoodActivity extends AppCompatActivity  {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mood);
+        mInstance = this;
 
         clRootView = findViewById(R.id.activity_mood_root_view);
         ivMood = findViewById(R.id.iv_mood);
@@ -64,6 +72,7 @@ public class MoodActivity extends AppCompatActivity  {
         if(!AlarmBroadcastReceiver.isAlarmStarted) {
             AlarmBroadcastReceiver.scheduleAlarm(getBaseContext());
             AlarmBroadcastReceiver.isAlarmStarted = true;
+            //mSharedPreferences.edit().putBoolean(IS_ALARM_STARTED, true).apply();
         }
     }
 
@@ -99,8 +108,8 @@ public class MoodActivity extends AppCompatActivity  {
     }
 
     public void changeMood(int currentPosition) {
-        clRootView.setBackgroundColor(colors[currentPosition]);
-        ivMood.setBackground(smileys.getDrawable(currentPosition));
+        if(clRootView != null) clRootView.setBackgroundColor(colors[currentPosition]);
+        if(ivMood != null) ivMood.setBackground(smileys.getDrawable(currentPosition));
     }
 
     /**
@@ -123,8 +132,7 @@ public class MoodActivity extends AppCompatActivity  {
                 .setPositiveButton("Valider", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        if(editText.getText().length() != 0)
-                            mSharedPreferences.edit().putString(CURRENT_COMMENT, editText.getText().toString()).apply();
+                       mSharedPreferences.edit().putString(CURRENT_COMMENT, editText.getText().toString()).apply();
                     }
                 })
                 .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
@@ -132,6 +140,10 @@ public class MoodActivity extends AppCompatActivity  {
                     }
                 });
         builder.create().show();
+    }
+
+    public void startHistory(View view) {
+        startActivity(new Intent(this, HistoryActivity.class));
     }
 }
 
