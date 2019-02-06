@@ -2,8 +2,6 @@ package com.ocr.moodtracker;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,7 +22,11 @@ import android.widget.ImageView;
 
 import com.ocr.moodtracker.receiver.AlarmBroadcastReceiver;
 
-import static com.ocr.moodtracker.utils.Constants.*;
+import static com.ocr.moodtracker.utils.Constants.CURRENT_COMMENT;
+import static com.ocr.moodtracker.utils.Constants.DEFAULT_COMMENT;
+import static com.ocr.moodtracker.utils.Constants.DEFAULT_MOOD;
+import static com.ocr.moodtracker.utils.Constants.MOOD_STATUS;
+import static com.ocr.moodtracker.utils.Constants.PREFERENCE_NAME;
 
 /**
  * Manage the mood of the day
@@ -85,7 +87,6 @@ public class MoodActivity extends AppCompatActivity  {
         if(!AlarmBroadcastReceiver.isAlarmStarted) {
             AlarmBroadcastReceiver.scheduleAlarm(getBaseContext());
             AlarmBroadcastReceiver.isAlarmStarted = true;
-            //mSharedPreferences.edit().putBoolean(IS_ALARM_STARTED, true).apply();
         }
     }
 
@@ -107,7 +108,6 @@ public class MoodActivity extends AppCompatActivity  {
                         currentPosition --;
                         animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
-                        playSoundMood(currentPosition);
                     }
                 }
                 if (y1 > y2) {
@@ -116,7 +116,6 @@ public class MoodActivity extends AppCompatActivity  {
                         currentPosition ++;
                         animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
-                        playSoundMood(currentPosition);
                     }
                 }
                 break;
@@ -127,7 +126,7 @@ public class MoodActivity extends AppCompatActivity  {
     /**
      * Animate the change of the smiley
      */
-    public void animateSmiley(){
+    public void animateSmiley() {
         Animation animZoomOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_out);
         animZoomOut.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -137,11 +136,25 @@ public class MoodActivity extends AppCompatActivity  {
             public void onAnimationEnd(Animation animation) {
                 changeMood(currentPosition);
                 Animation animZoomIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_in);
+                animZoomIn.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        playSoundMood(currentPosition);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
                 ivMood.startAnimation(animZoomIn);
             }
-
             @Override
-            public void onAnimationRepeat(Animation animation) { }
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
         ivMood.startAnimation(animZoomOut);
     }
