@@ -1,10 +1,12 @@
 package com.ocr.moodtracker;
 
-import android.content.Context;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -13,12 +15,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.ocr.moodtracker.receiver.AlarmBroadcastReceiver;
 
-import static com.ocr.moodtracker.utils.Constants.*;
+import static com.ocr.moodtracker.utils.Constants.CURRENT_COMMENT;
+import static com.ocr.moodtracker.utils.Constants.DEFAULT_COMMENT;
+import static com.ocr.moodtracker.utils.Constants.DEFAULT_MOOD;
+import static com.ocr.moodtracker.utils.Constants.MOOD_STATUS;
+import static com.ocr.moodtracker.utils.Constants.PREFERENCE_NAME;
 
 /**
  * Manage the mood of the day
@@ -38,10 +46,13 @@ public class MoodActivity extends AppCompatActivity  {
 
     int colors[];
     TypedArray smileys;
+    int[] soundMoods;
 
     private int currentPosition = DEFAULT_MOOD;
 
     private SharedPreferences mSharedPreferences;
+
+    private MediaPlayer player;
 
 
     @Override
@@ -69,10 +80,13 @@ public class MoodActivity extends AppCompatActivity  {
         smileys = getResources().obtainTypedArray(R.array.smileys);
         changeMood(currentPosition);
 
+        soundMoods = new int[] { R.raw.sad, R.raw.disappointed,
+                R.raw.normal, R.raw.happy, R.raw.very_happy};
+
+
         if(!AlarmBroadcastReceiver.isAlarmStarted) {
             AlarmBroadcastReceiver.scheduleAlarm(getBaseContext());
             AlarmBroadcastReceiver.isAlarmStarted = true;
-            //mSharedPreferences.edit().putBoolean(IS_ALARM_STARTED, true).apply();
         }
     }
 
@@ -90,15 +104,17 @@ public class MoodActivity extends AppCompatActivity  {
                 y2 = event.getY();
                 if (y1 < y2) {
                     if(currentPosition > 0) {
+                        animateBackgroundColor(currentPosition, currentPosition - 1);
                         currentPosition --;
-                        changeMood(currentPosition);
+                        animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                     }
                 }
                 if (y1 > y2) {
                     if(currentPosition < colors.length - 1) {
+                        animateBackgroundColor(currentPosition, currentPosition + 1);
                         currentPosition ++;
-                        changeMood(currentPosition);
+                        animateSmiley();
                         mSharedPreferences.edit().putInt(MOOD_STATUS, currentPosition).apply();
                     }
                 }
@@ -107,6 +123,57 @@ public class MoodActivity extends AppCompatActivity  {
         return false;
     }
 
+    /**
+     * Animate the change of the smiley
+     */
+    public void animateSmiley() {
+        Animation animZoomOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_out);
+        animZoomOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) { }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                changeMood(currentPosition);
+                Animation animZoomIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.zoom_in);
+                animZoomIn.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        playSoundMood(currentPosition);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+                ivMood.startAnimation(animZoomIn);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        ivMood.startAnimation(animZoomOut);
+    }
+
+    /**
+     * Animate the background color from
+     * @param currentPosition current mood color
+     * @param toPosition new mood color
+     */
+    public void animateBackgroundColor(int currentPosition, int toPosition) {
+        ObjectAnimator animator = ObjectAnimator.ofInt(clRootView, "backgroundColor", colors[currentPosition], colors[toPosition]).setDuration(1000);
+        animator.setEvaluator(new ArgbEvaluator());
+        animator.start();
+    }
+
+    /**
+     * display the mood
+     * @param currentPosition
+     */
     public void changeMood(int currentPosition) {
         if(clRootView != null) clRootView.setBackgroundColor(colors[currentPosition]);
         if(ivMood != null) ivMood.setBackground(smileys.getDrawable(currentPosition));
@@ -140,6 +207,19 @@ public class MoodActivity extends AppCompatActivity  {
                     }
                 });
         builder.create().show();
+    }
+
+    /**
+     * play the sound associate with mood
+     */
+    public void playSoundMood(int currentPosition) {
+        if(player != null) {
+            player.reset();
+            player.release();
+        }
+
+        player = MediaPlayer.create(getBaseContext(), soundMoods[currentPosition]);
+        player.start();
     }
 
     public void startHistory(View view) {
