@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MoodTracker</string>
+    <string name="a_week_ago">Il y a une semaine</string>
+    <string name="six_days_ago">Il y a six jours</string>
+    <string name="five_days_ago">Il y a cinq jours</string>
+    <string name="four_days_ago">Il y a quatre jours</string>
+    <string name="three_days_ago">Il y a trois jours</string>
+    <string name="two_days_ago">Avant-hier</string>
+    <string name="yesterday">Hier</string>
+
+    <string name="no_moods_register">Vous n\'avez pas encore enregistré d\'humeur</string>
 </resources>
