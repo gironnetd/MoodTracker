@@ -42,7 +42,7 @@ before_script:
 - source /home/travis/google-cloud-sdk/path.bash.inc
 - gcloud version
 # Add gcloud auth
-- gcloud auth activate-service-account firebase-adminsdk-lssd3@moodtracker-c5e22.iam.gserviceaccount.com --key-file=key.json --project=moodtracker-c5e22
+- gcloud auth activate-service-account firebase-adminsdk-lssd3@moodtracker-c5e22.iam.gserviceaccount.com --key-file=moodtracker-c5e22-firebase-adminsdk-lssd3-ff7056ba07.json --project=moodtracker-c5e22
 script:
 #- "./gradlew connectedCheck"
 - ./gradlew clean build connectedCheck -PdisablePreDex --stacktrace
